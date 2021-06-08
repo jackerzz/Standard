@@ -27,7 +27,7 @@ class Settings(BaseSettings):
 
     # Database configuration
     DATABASE_USER: str = "root"
-    DATABASE_PASS: str = "yitutech123"
+    DATABASE_PASS: str = "root"
     DATABASE_HOST: str = "192.168.1.8"
     DATABASE_DB: str = "Standard"
     DATABASE_PORT: str = "3308"
