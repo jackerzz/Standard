@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     # Database configuration
     # Use by default sqlite3
     # user sqlite3 config 
-    SQLALCHEMY_DATABASE_URI: str = "sqlite:///./myproject_db"
+    SQLALCHEMY_DATABASE_URI: str = "sqlite:///./myproject.sqlite3"
 
     # user mysql config
     # DATABASE_USER: str = "root"
