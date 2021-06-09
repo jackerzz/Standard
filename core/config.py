@@ -26,21 +26,27 @@ class Settings(BaseSettings):
     BACKEND_CORS_ORIGINS: List = ["*"]
 
     # Database configuration
-    DATABASE_USER: str = "root"
-    DATABASE_PASS: str = "root"
-    DATABASE_HOST: str = "192.168.1.8"
-    DATABASE_DB: str = "Standard"
-    DATABASE_PORT: str = "3308"
-    SQLALCHEMY_DATABASE_URI: str = f"mysql+pymysql://" \
-                                   f"{DATABASE_USER}:{DATABASE_PASS}@{DATABASE_HOST}:{DATABASE_PORT}/{DATABASE_DB}"
+    # Use by default sqlite3
+    # user sqlite3 config 
+    SQLALCHEMY_DATABASE_URI: str = "sqlite:///./myproject_db"
+
+    # user mysql config
+    # DATABASE_USER: str = "root"
+    # DATABASE_PASS: str = "root"
+    # DATABASE_HOST: str = "192.168.1.8"
+    # DATABASE_DB: str = "Standard"
+    # DATABASE_PORT: str = "3308"
+    # SQLALCHEMY_DATABASE_URI: str = f"mysql+pymysql://" \
+    #                                f"{DATABASE_USER}:{DATABASE_PASS}@{DATABASE_HOST}:{DATABASE_PORT}/{DATABASE_DB}"
+
 
     # Redis store address
-    REDIS_STORAGE_HOST: str = "192.168.1.8"
+    REDIS_STORAGE_HOST: str = "localhost"
     REDIS_STORAGE_PORT: str = "6379"
     REDIS_STORAGE_PASS: str = ""
 
     # RateLimitBackend
-    RATE_LIMIT_REDIS_BACKEND_HOST: str = "192.168.1.8"
+    RATE_LIMIT_REDIS_BACKEND_HOST: str = "localhost"
     RATE_LIMIT_REDIS_BACKEND_PORT: str = "6379"
     RATE_LIMIT_REDIS_BACKEND_DB: str = "0"
     RATE_LIMIT_REDIS_BACKEND_PASS: str = ""
