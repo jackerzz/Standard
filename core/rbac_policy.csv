@@ -1,0 +1,15 @@
+p, bob, /rbac/resource1, *
+p, bob, /rbac/resource2, GET
+p, bob, /rbac/folder1/*, POST
+
+p, rbac_admin, /rbac/*, *
+
+p, *, /login, *
+p, *, /docs, *
+p, *, /api/v1/openapi.json, *
+
+p, anonymous, /, GET
+p, anonymous, /api/v1/rbac/dataset1/protected, GET
+
+
+g, cathy, rbac_admin

@@ -1,4 +1,5 @@
 from loguru import logger
+import casbin
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
@@ -6,6 +7,8 @@ from core.config import settings
 from api.api_v1.api import api_router
 from middleware.auto_db_session import DBSessionMiddleware
 from middleware.authentication import BearerAuthenticationMiddleware
+from middleware.casbinMiddleware import CasbinMiddleware
+
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -15,6 +18,8 @@ app = FastAPI(
 )
 
 # middleware
+enforcer = casbin.Enforcer('core/rbac_model.conf', 'core/rbac_policy.csv')
+app.add_middleware(CasbinMiddleware, enforcer=enforcer)
 app.add_middleware(BearerAuthenticationMiddleware)  # auth middleware
 app.add_middleware(DBSessionMiddleware)  # auto db session manage middleware
 if settings.BACKEND_CORS_ORIGINS:
