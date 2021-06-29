@@ -10,6 +10,8 @@ p, *, /api/v1/openapi.json, *
 
 p, anonymous, /, GET
 p, anonymous, /api/v1/rbac/dataset1/protected, GET
+p, anonymous, /api/v1/rbac/dataset1/protected, POST
+p, anonymous, /api/v1/rbac/, GET
 
 
 g, cathy, rbac_admin

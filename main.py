@@ -8,8 +8,8 @@ from api.api_v1.api import api_router
 from middleware.auto_db_session import DBSessionMiddleware
 from middleware.authentication import BearerAuthenticationMiddleware
 from middleware.casbinMiddleware import CasbinMiddleware
-
-
+from middleware.secureHttpsMiddleware import MessageSecureHTTPMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f'{settings.API_V1_STR}/openapi.json',
@@ -18,6 +18,8 @@ app = FastAPI(
 )
 
 # middleware
+app.add_middleware(MessageSecureHTTPMiddleware)
+app.add_middleware(SessionMiddleware,secret_key="example",max_age=1 * 24 * 60 * 60)
 enforcer = casbin.Enforcer('core/rbac_model.conf', 'core/rbac_policy.csv')
 app.add_middleware(CasbinMiddleware, enforcer=enforcer)
 app.add_middleware(BearerAuthenticationMiddleware)  # auth middleware
