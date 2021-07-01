@@ -62,6 +62,6 @@ class CasbinMiddleware:
 
         user = request.user.display_name if request.user.is_authenticated else 'anonymous'
 
-        print(user, path, method)
+        # print(user, path, method)
 
         return self.enforcer.enforce(user, path, method)

@@ -17,7 +17,11 @@ app = FastAPI(
     redoc_url='/redoc',
 )
 
-# middleware
+@app.on_event("startup")
+async def init_scheduler():
+    from libs.rsalib import generateRsaKeySave
+    await generateRsaKeySave()
+
 app.add_middleware(MessageSecureHTTPMiddleware)
 app.add_middleware(SessionMiddleware,secret_key="example",max_age=1 * 24 * 60 * 60)
 enforcer = casbin.Enforcer('core/rbac_model.conf', 'core/rbac_policy.csv')

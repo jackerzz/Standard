@@ -4,7 +4,7 @@
 
 ### 拉取
 ```
-    git clone https://github.com/jackerzz/FastapiWebSocekt.git
+    git clone https://github.com/jackerzz/Standard.git
 ```
 ### 安装
 - 1.环境依赖
