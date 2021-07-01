@@ -40,10 +40,8 @@ class _MessageSecureHTTPResponder:
     async def receive_with_msg(self) -> Message:
         message = await self.receive()
         # 解密数据
-        print(message)
-        body = json.loads(message['body'])
-        # body 解密数据
-        body = self.resServer.rsaServerDecrypt(body)
+        
+        body = self.resServer.rsaServerDecrypt(message['body'])
         message = json.dumps(body)
         return message
 
@@ -59,12 +57,7 @@ class _MessageSecureHTTPResponder:
 
         elif message["type"] == "http.response.body":
             headers = MutableHeaders(raw=self.initial_message['headers'])
-            body = json.loads(message['body'])
-            # body 进行对称加密
-            print(body)
-            body = await self.resServer.rsaServerEncrypt(body)
-            print(body)
-            body = json.dumps(body)
+            body = await self.resServer.rsaServerEncrypt(message['body'])
 
             # 定义 响应header
             headers["Content-Type"] = "application/json"

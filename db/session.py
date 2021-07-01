@@ -1,6 +1,6 @@
 from functools import lru_cache
-
-from fastapi_manage.redis import StrictRedis
+from redis import Redis
+# from fastapi_manage.redis import StrictRedis
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -13,6 +13,6 @@ SessionFactory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 @lru_cache()
-def redis_session(db: int = 0) -> StrictRedis:
-    return StrictRedis(host=settings.REDIS_STORAGE_HOST, port=settings.REDIS_STORAGE_PORT,
+def redis_session(db: int = 0) -> Redis:
+    return Redis(host=settings.REDIS_STORAGE_HOST, port=settings.REDIS_STORAGE_PORT,
                        password=settings.REDIS_STORAGE_PASS or None, db=db, decode_responses=True)

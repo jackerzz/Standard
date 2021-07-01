@@ -3,7 +3,7 @@ import string
 from SecureHTTP import generate_rsa_keys
 from db.session import redis_session
 
-from SecureHTTP import EncryptedCommunicationServer
+from SecureHTTP import RSAEncrypt, RSADecrypt, generate_rsa_keys
 from SecureHTTP import AESEncrypt, AESDecrypt
 
 from db.session import redis_session
@@ -35,40 +35,34 @@ async def generateRsaKeySave():
         生成密钥对
         每隔一段时间会更新一次
     '''
-    # https://aredis.readthedocs.io/en/latest/
     (pubkey, privkey) = generate_rsa_keys(incall=True)
     aeskey = makeAesKey()
     pubkey = AESEncrypt(aeskey, str(pubkey, encoding="utf-8"))
-    await redis_session().mset({
+    redis_session().mset({
         "pubkey": pubkey,
-        "privkey": str(privkey, encoding="utf-8"),
+        "privkey": privkey,
         "aeskey": aeskey
     })
 
 # https://github.com/jackerzz/Python-SecureHTTP
 # https://github.com/jackerzz/Python-SecureHTTP/blob/master/examples/Demo/server.py
+# https://github.com/staugur/SecureHTTP.js
 class RsaServer(object):
     def __init__(self) -> None:
         self.client = redis_session()
-        self.sc = EncryptedCommunicationServer(self.client.get('privkey'))
-
-    async def getPrivkey(self):
-        '''
-        获取私钥
-        '''
-        privkey = await self.client.get('privkey')
-        return privkey
-
-    async def rsaServerEncrypt(self, data):
+        self.privkey = self.client.get('privkey')
+        
+    async def rsaServerEncrypt(self, data:str,passphrase=None)->str:
         '''
            @rsaServerEncrypt
            服务端返回加密数据
         '''
-        return self.sc.serverEncrypt(data)
+        
+        return RSAEncrypt(self.privkey,data,passphrase)
 
-    async def rsaServerDecrypt(self, data):
+    async def rsaServerDecrypt(self, data:str,passphrase=None)->str:
         '''
            @rsaServerDecrypt
            服务端解密数据
         '''
-        return self.sc.serverDecrypt(data)
+        return RSADecrypt(self.privkey,data,passphrase)
