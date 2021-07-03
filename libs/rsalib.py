@@ -3,8 +3,8 @@ import string
 from SecureHTTP import generate_rsa_keys
 from db.session import redis_session
 
-from SecureHTTP import RSAEncrypt, RSADecrypt, generate_rsa_keys
-from SecureHTTP import AESEncrypt, AESDecrypt
+from SecureHTTP import generate_rsa_keys
+from SecureHTTP import AESEncrypt
 
 from db.session import redis_session
 
@@ -43,26 +43,3 @@ async def generateRsaKeySave():
         "privkey": privkey,
         "aeskey": aeskey
     })
-
-# https://github.com/jackerzz/Python-SecureHTTP
-# https://github.com/jackerzz/Python-SecureHTTP/blob/master/examples/Demo/server.py
-# https://github.com/staugur/SecureHTTP.js
-class RsaServer(object):
-    def __init__(self) -> None:
-        self.client = redis_session()
-        self.privkey = self.client.get('privkey')
-        
-    async def rsaServerEncrypt(self, data:str,passphrase=None)->str:
-        '''
-           @rsaServerEncrypt
-           服务端返回加密数据
-        '''
-        
-        return RSAEncrypt(self.privkey,data,passphrase)
-
-    async def rsaServerDecrypt(self, data:str,passphrase=None)->str:
-        '''
-           @rsaServerDecrypt
-           服务端解密数据
-        '''
-        return RSADecrypt(self.privkey,data,passphrase)

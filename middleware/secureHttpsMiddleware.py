@@ -2,7 +2,10 @@ import json
 from starlette.requests import Request
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from starlette.datastructures import MutableHeaders
-from libs.rsalib import RsaServer
+from SecureHTTP import EncryptedCommunicationServer
+from db.session import redis_session
+
+
 class MessageSecureHTTPMiddleware:
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
@@ -14,8 +17,6 @@ class MessageSecureHTTPMiddleware:
             return
         await self.app(scope, receive, send)
 
-
-# https://github.com/florimondmanca/msgpack-asgi/blob/master/src/msgpack_asgi/_middleware.py
 class _MessageSecureHTTPResponder:
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
@@ -26,7 +27,9 @@ class _MessageSecureHTTPResponder:
         self.method = str
         self.initial_message: Message = {}
         self.started = False
-        self.resServer = RsaServer()
+        self.client = redis_session()
+        self.resServer = EncryptedCommunicationServer(
+            self.client.get('privkey'))
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         self.headers = MutableHeaders(scope=scope)
@@ -38,39 +41,51 @@ class _MessageSecureHTTPResponder:
         await self.app(scope, self.receive_with_msg, self.send_with_msg)
 
     async def receive_with_msg(self) -> Message:
+        '''
+            解密返回
+        '''
         message = await self.receive()
-        # 解密数据
-        
-        body = self.resServer.rsaServerDecrypt(message['body'])
-        message = json.dumps(body)
+        print("解密返回原生message:", message)
+        body = json.loads(str(message['body'], encoding="utf-8"))
+        body = self.resServer.serverDecrypt(body)
+        message['body'] = bytes(json.dumps(body), encoding='utf-8')
+        print('解密成功message：', message)
         return message
 
     async def send_with_msg(self, message: Message) -> None:
-        if self.url in ['/docs','/api/v1/openapi.json']:
+        '''
+            加密返回
+        '''
+        if self.url in ['/docs', '/api/v1/openapi.json']:
             await self.send(message)
             return
 
         if message["type"] == "http.response.start":
             self.initial_message = message
-            await self.send(message)
+            # await self.send(message)
             return
 
         elif message["type"] == "http.response.body":
+            print("加密返回原生http.response.body --> message:", message)
+            print("加密返回原生http.response.start --> message:", self.initial_message)
             headers = MutableHeaders(raw=self.initial_message['headers'])
-            body = await self.resServer.rsaServerEncrypt(message['body'])
+            # bytes to dict => dict to bytes
+            body = json.loads(str(message['body'], encoding="utf-8"))
+            body = self.resServer.serverEncrypt(body)
+            body = bytes(json.dumps(body), encoding='utf-8')
 
-            # 定义 响应header
-            headers["Content-Type"] = "application/json"
-            headers["Content-Length"] = str(len(body))
-            headers['type'] = "http.response.body"
+            # 更新 body
             message["body"] = body
+            print("更新 body ", body)
+
+            # 自定义响应header
+            headers["Content-Length"] = str(len(body))
             headers['ac'] = "hhhh"
-            header_value = "{}={};".format(
-                headers['ac'],
-                "jacdsafdsaf",
-            )
-            headers.append("Set-Cookie", header_value)
-            await self.send(headers)
+            headers.append("Set-Cookie", "fasdfdsa")
+
+            self.initial_message['headers'] = headers._list
+            await self.send(self.initial_message)
+
             await self.send(message)
 
 

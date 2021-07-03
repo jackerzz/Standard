@@ -1,6 +1,5 @@
 from functools import lru_cache
 from redis import Redis
-# from fastapi_manage.redis import StrictRedis
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
