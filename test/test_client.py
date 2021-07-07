@@ -25,3 +25,20 @@ def test_client():
     resp = requests.post("http://127.0.0.1:8000/api/v1/rbac/dataset1/protected", json=encryptedPost,headers=headers).json()
     resp = ec.clientDecrypt(resp)
     print("\n服务端返回数据：%s" %resp)
+    
+'''
+$ time pytest test/test_client.py -s
+=============================================== test session starts ===============================================
+platform win32 -- Python 3.7.6, pytest-6.2.4, py-1.10.0, pluggy-0.13.1
+rootdir: E:\HexoProject\Standard
+collecting ... 2021-07-07 14:28:14.590 | DEBUG    | core.config:get_config:86 - 识别开发者模式
+2021-07-07 14:28:14.590 | DEBUG    | core.config:get_config:98 - 项目配置加载完成
+collected 1 item                                                                                                   
+
+test\test_client.py
+服务端返回数据：{'name': 'sbfsdafsdafdsafsdafsdafsda', 'txet': 'hhhhhhh'}
+========================================== 1 passed, 1 warning in 1.13s ===========================================
+real    0m2.062s
+user    0m0.000s
+sys     0m0.046s
+'''

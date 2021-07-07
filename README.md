@@ -1,7 +1,14 @@
 # Standard
 
 #### 介绍
-
+- 1.支持通信协议加密协议 RSA+AES+其他
+- 2.支持基于 pytorch 训练Rnn 模型
+- 3.支持基于金融模型ARIMA进行模型预测
+- 5.支持认证中间件
+- 6.支持限流中间件
+- 7.支持rbac用户角色权力管理
+- 8.分页库
+- 9.数据库采用redis,mysql(sqlite3)
 ### 拉取
 ```
     git clone https://github.com/jackerzz/Standard.git
@@ -20,16 +27,6 @@
     # 更新依赖
          pip freeze > requirements.txt
 ```
-
-#### 项目组件的使用
-1. 中间件：
-    1. 认证中间件
-    2. 限流中间件
-    3. rbac 权限认证
-    
-2. 库：
-    1. 分页库
-    2. 工具库
 
 ###### makemigrations
 为项目创建一个新的迁移

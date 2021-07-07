@@ -4,7 +4,7 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from starlette.datastructures import MutableHeaders
 from SecureHTTP import EncryptedCommunicationServer
 from db.session import redis_session
-
+from core.config import settings
 
 class MessageSecureHTTPMiddleware:
     def __init__(self, app: ASGIApp) -> None:
@@ -23,8 +23,6 @@ class _MessageSecureHTTPResponder:
         self.receive: Receive = unattached_receive
         self.send: Send = unattached_send
         self.url = ''
-        self.headers = ''
-        self.method = str
         self.initial_message: Message = {}
         self.started = False
         self.client = redis_session()
@@ -32,10 +30,8 @@ class _MessageSecureHTTPResponder:
             self.client.get('privkey'))
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        self.headers = MutableHeaders(scope=scope)
         request = Request(scope, receive)
         self.url = request.url.path
-        self.method = scope["method"]
         self.receive = receive
         self.send = send
         await self.app(scope, self.receive_with_msg, self.send_with_msg)
@@ -45,30 +41,30 @@ class _MessageSecureHTTPResponder:
             解密返回
         '''
         message = await self.receive()
-        print("解密返回原生message:", message)
+        if self.url not in settings.EXURL:
+            return message
+
         body = json.loads(str(message['body'], encoding="utf-8"))
         body = self.resServer.serverDecrypt(body)
         message['body'] = bytes(json.dumps(body), encoding='utf-8')
-        print('解密成功message：', message)
+        
         return message
 
     async def send_with_msg(self, message: Message) -> None:
         '''
             加密返回
         '''
-        if self.url in ['/docs', '/api/v1/openapi.json']:
+        if self.url not in settings.EXURL:
             await self.send(message)
             return
 
         if message["type"] == "http.response.start":
             self.initial_message = message
-            # await self.send(message)
             return
 
         elif message["type"] == "http.response.body":
-            print("加密返回原生http.response.body --> message:", message)
-            print("加密返回原生http.response.start --> message:", self.initial_message)
             headers = MutableHeaders(raw=self.initial_message['headers'])
+
             # bytes to dict => dict to bytes
             body = json.loads(str(message['body'], encoding="utf-8"))
             body = self.resServer.serverEncrypt(body)
@@ -76,7 +72,6 @@ class _MessageSecureHTTPResponder:
 
             # 更新 body
             message["body"] = body
-            print("更新 body ", body)
 
             # 自定义响应header
             headers["Content-Length"] = str(len(body))
