@@ -3,14 +3,12 @@ from starlette.requests import Request
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from starlette.datastructures import MutableHeaders
 from SecureHTTP import RSADecrypt,AESDecrypt,AESEncrypt
-from db.session import redis_session
-<<<<<<< HEAD
-from libs.snowflakeAlgorithm import IdWorker
 
-worker = IdWorker(1, 2, 0)
-=======
+from db.session import redis_session
+from libs.snowflakeAlgorithm import IdWorker
 from core.config import settings
->>>>>>> 0fbf929c948dab092906be645d2e27bbbc1dff9f
+worker = IdWorker(1, 2, 0)
+
 
 class MessageSecureHTTPMiddleware:
     def __init__(self, app: ASGIApp) -> None:
