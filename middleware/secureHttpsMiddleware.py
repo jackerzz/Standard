@@ -4,9 +4,13 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from starlette.datastructures import MutableHeaders
 from SecureHTTP import RSADecrypt,AESDecrypt,AESEncrypt
 from db.session import redis_session
+<<<<<<< HEAD
 from libs.snowflakeAlgorithm import IdWorker
 
 worker = IdWorker(1, 2, 0)
+=======
+from core.config import settings
+>>>>>>> 0fbf929c948dab092906be645d2e27bbbc1dff9f
 
 class MessageSecureHTTPMiddleware:
     def __init__(self, app: ASGIApp) -> None:
@@ -25,18 +29,14 @@ class _MessageSecureHTTPResponder:
         self.receive: Receive = unattached_receive
         self.send: Send = unattached_send
         self.url = ''
-        self.headers = ''
-        self.method = str
         self.initial_message: Message = {}
         self.started = False
         self.privkey = redis_session().get('privkey')
         self.asekey = ''
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        self.headers = MutableHeaders(scope=scope)
         request = Request(scope, receive)
         self.url = request.url.path
-        self.method = scope["method"]
         self.receive = receive
         self.send = send
         await self.app(scope, self.receive_with_msg, self.send_with_msg)
@@ -46,9 +46,10 @@ class _MessageSecureHTTPResponder:
             解密返回
         '''
         message = await self.receive()
-        if self.url in ['/docs', '/api/v1/openapi.json']:
-            await self.send(message)
-            return
+
+        if self.url not in settings.EXURL:
+            return message
+
 
         body = json.loads(str(message['body'], encoding="utf-8"))
         self.asekey = RSADecrypt(self.privkey,body['key'])
@@ -61,7 +62,7 @@ class _MessageSecureHTTPResponder:
         '''
             加密返回
         '''
-        if self.url in ['/docs', '/api/v1/openapi.json']:
+        if self.url not in settings.EXURL:
             await self.send(message)
             return
 
@@ -72,7 +73,7 @@ class _MessageSecureHTTPResponder:
         elif message["type"] == "http.response.body":
             headers = MutableHeaders(raw=self.initial_message['headers'])
 
-
+            # bytes to dict => dict to bytes
             body = json.loads(str(message['body'], encoding="utf-8"))
             body = dict(data=AESEncrypt(self.asekey, json.dumps(body, separators=(',', ':')), output_type="str"))
             body = bytes(json.dumps(body), encoding='utf-8')

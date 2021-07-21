@@ -55,6 +55,8 @@ class Settings(BaseSettings):
     CELERY_BROKER: str = ""
     CELERY_BACKEND: str = ""
 
+    # Add needed to encrypt communication url
+    EXURL=['/api/v1/rbac/dataset1/protected']
     class Config:
         case_sensitive = True
 
