@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>AES+RSA前端加密后端解密示例</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+    <p><button class="Ajax_send">开始: 获取pubkey、nonce、timestamp参数 </button><span class="login_error"></span></p>
+    
+    <hr>
+    <form id="form1">
+        username: <input id="username" name="username" type="text" value="admin"></input><br />
+        password: <input id="password" name="password" type="password" value="admin"></input><br />
+        <input id="submit" type="button" value="submit" /><br />
+    </form>
+    <div id="showResult"></div>
+
+    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+    <!--引入AES加密库-->
+    <script src="https://cdn.bootcss.com/crypto-js/3.1.9-1/crypto-js.js"></script>
+    <!--引入RSA加密库-->
+    <script src="https://cdn.bootcss.com/jsencrypt/3.0.0-rc.1/jsencrypt.min.js"></script>
+    <script src="https://static.saintic.com/securehttp.js/v0.1.0/SecureHTTP.js"></script>
+    
+    <script type="text/javascript">
+        var info ={}
+        $(".Ajax_send").click(function () {
+            // ajax请求
+            $.ajax({
+                url: "http://localhost/pubkey/",  //请求路径
+
+                type: "GET",      //请求方式
+                contentType: "application/json",  //告诉服务器发的是json的格式
+                success: function (output, status, request) {
+                    console.log(output)
+                    info['aeskey']=output['aeskey']
+                    info['pubkey']=output['pubkey']
+                    info['nonce']=request.getResponseHeader('nonce')
+                    info['timestamp']=request.getResponseHeader('timestamp')
+                    console.log(info)
+                }
+            })
+        })
+
+        $('#submit').click(function () {
+            var username = $('#username').val();
+            var password = $('#password').val();
+
+            var pubkey_server = AESDecrypt(info['aeskey'],info['pubkey'])
+        
+            // 计算加密数据加密 AESKEY
+            var tone = (parseInt(info['timestamp'])+parseInt(info['nonce'])).toString()
+            console.log(tone)
+            var asekey =CryptoJS.MD5(tone).toString();
+            // var asekey =md5(tone);
+            console.log(asekey)
+            
+            
+            // 原数据 
+            var bodyData = {"username":username,"password":password}
+
+            // 原数据加密后的存放位置
+            var RSArespons = {"key":"","value":""}
+
+            // ase 加密后的
+            RSArespons['value'] = AESEncrypt(asekey,JSON.stringify(bodyData))
+
+            // 通过公钥 使用RSA加密 aes
+            RSArespons['key'] = RSAEncrypt(pubkey_server,asekey)
+            console.log(RSArespons)
+            $.ajax({
+                url: "http://localhost/token",
+                type: 'post',
+                headers: {
+                    "Accept": "*/*",
+                    "timestamp": info['timestamp'],
+                    "nonce": info['nonce'],
+                },
+                contentType: "application/json", // 必须
+                data: JSON.stringify(RSArespons),
+                success: function (output, status, request) {
+                    console.log(output)
+                    console.log(AESDecrypt(asekey,output['data']));
+                    info['nonce']=request.getResponseHeader('nonce')
+                    info['timestamp']=request.getResponseHeader('timestamp')
+                    console.log(info)
+                },
+                error: function (xhr) {
+                    console.log(xhr.bodyData)
+                    // console.log(AESDecrypt(asekey,output['data']));
+                    alert('出错了');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
